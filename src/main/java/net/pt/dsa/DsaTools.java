@@ -1,19 +1,18 @@
 package net.pt.dsa;
 
-import net.pt.dsa.action.SelectNewPortraitActionDSA1;
-import net.pt.dsa.action.SelectPortraitActionDSA1;
-import net.pt.dsa.action.SwitchPortraitActionDSA1;
-import net.pt.dsa.action.SelectPortraitActionDSA2;
+import net.pt.dsa.action.*;
 import net.pt.dsa.util.Dsa32BitColour;
+import net.pt.dsa.util.DsaUtil;
+import net.pt.dsa.util.PortraitConverter;
 import org.apache.commons.io.FileUtils;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
 
@@ -23,6 +22,7 @@ import java.util.prefs.Preferences;
  */
 public class DsaTools {
   final ResourceBundle texts;
+  final Properties settings;
   final JFrame frame;
   final Preferences preferences;
 
@@ -34,6 +34,10 @@ public class DsaTools {
   JButton dsa1SwitchPortraitApplyImage;
   File dsa1SwitchPortraitChrFile;
   File dsa1SwitchPortraitImgFile;
+
+  JLabel dsa1ConvertPortraitsLabel;
+  JButton dsa1ConvertPortraitsSelectDir;
+  File dsa1ConvertPortraitsDir;
 
   JLabel dsa2SwitchPortraitLabel;
   JButton dsa2SwitchPortraitSelectCharFile;
@@ -68,6 +72,14 @@ public class DsaTools {
 
     // Initialize user preferences
     preferences = Preferences.userNodeForPackage(DsaTools.class);
+
+    // Initialize settings
+    settings = new Properties();
+    try {
+      settings.load(DsaTools.class.getResourceAsStream("/dsatools.properties"));
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
   }
 
   /**
@@ -109,10 +121,21 @@ public class DsaTools {
         new SwitchPortraitActionDSA1(this));
     dsa1SwitchPortraitApplyImage.setEnabled(false);
 
-    // 2. row -> DSA 2 character portraits switcher
-    dsa2SwitchPortraitLabel = addLabel(pane, constraints, 10, 20, 1, 1, GridBagConstraints.WEST,
+    addLabel(pane, constraints, 15, 15, 1, 1, GridBagConstraints.WEST, "main.blank");
+
+    // 2. row -> DSA 1 character portraits converter
+    dsa1ConvertPortraitsLabel = addLabel(pane, constraints, 10, 20, 1, 1, GridBagConstraints.WEST,
+        "main.dsa1.convertportrait.label");
+    dsa1ConvertPortraitsSelectDir = addButton(pane, constraints, 12, 20, 1, 1, GridBagConstraints.CENTER,
+        "main.dsa2.convertportrait.button", getClass().getClassLoader().getResource("open1.png"),
+        new ConvertPortraitActionDSA1(this));
+
+    addLabel(pane, constraints, 25, 25, 1, 1, GridBagConstraints.WEST, "main.blank");
+
+    // 3. row -> DSA 2 character portraits switcher
+    dsa2SwitchPortraitLabel = addLabel(pane, constraints, 10, 30, 1, 1, GridBagConstraints.WEST,
         "main.dsa2.portraits.label");
-    dsa2SwitchPortraitSelectCharFile = addButton(pane, constraints, 12, 20, 1, 1, GridBagConstraints.CENTER,
+    dsa2SwitchPortraitSelectCharFile = addButton(pane, constraints, 12, 30, 1, 1, GridBagConstraints.CENTER,
         "main.dsa2.portraits.button", getClass().getClassLoader().getResource("open1.png"),
         new SelectPortraitActionDSA2(this));
     dsa2SwitchPortraitSelectCharFile.setEnabled(false);
@@ -320,6 +343,22 @@ public class DsaTools {
     return dsa2SwitchPortraitSelectCharFile;
   }
 
+  public JLabel getDsa1ConvertPortraitsLabel() {
+    return dsa1ConvertPortraitsLabel;
+  }
+
+  public JButton getDsa1ConvertPortraitsSelectDir() {
+    return dsa1ConvertPortraitsSelectDir;
+  }
+
+  public File getDsa1ConvertPortraitsDir() {
+    return dsa1ConvertPortraitsDir;
+  }
+
+  public void setDsa1ConvertPortraitsDir(File dsa1ConvertPortraitsDir) {
+    this.dsa1ConvertPortraitsDir = dsa1ConvertPortraitsDir;
+  }
+
   private ImageIcon getIconFromChr(File chrFile) {
     ImageIcon icon = new ImageIcon();
     try {
@@ -364,35 +403,11 @@ public class DsaTools {
   private ImageIcon getIconFromNewImage(File imgFile) {
     ImageIcon icon = new ImageIcon();
     try {
-      // Read image file
-      BufferedImage image = ImageIO.read(imgFile);
-      // Scale image to 32x32
-      BufferedImage scaledImage = null;
+      // Convert image via util method
+      BufferedImage image = DsaUtil.convertImageTo32BitDsaPalette(imgFile);
+
       if (image != null) {
-        scaledImage = new BufferedImage(32, 32, image.getType());
-        Graphics2D graphics2D = scaledImage.createGraphics();
-        graphics2D.drawImage(image, 0, 0, 32, 32, null);
-        graphics2D.dispose();
-      }
-      // Transform to DSA Palette
-      if (scaledImage != null) {
-        for (int x = 0, y = 0; y < 32;) {
-          // Determine nearest RGB value from colour enum
-          int rgbValue = scaledImage.getRGB(x, y);
-          Dsa32BitColour colour = Dsa32BitColour.nearestRGBValue(rgbValue);
-          scaledImage.setRGB(x, y, colour.getRGB());
-
-          if (x == 31) {
-            // Line complete
-            x = 0;
-            y++;
-          } else {
-            x++;
-          }
-        }
-
-        icon = new ImageIcon(scaledImage);
-        ImageIO.write(scaledImage, "png", new File("newchar.png"));
+        icon = new ImageIcon(image);
       }
     } catch (Exception ex) {
       try {
@@ -401,5 +416,9 @@ public class DsaTools {
       ex.printStackTrace();
     }
     return icon;
+  }
+
+  public String getSetting(String key) {
+    return settings.getProperty(key);
   }
 }

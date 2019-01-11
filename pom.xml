@@ -4,7 +4,7 @@
     <groupId>net.pt.dsa</groupId>
     <artifactId>dsatools</artifactId>
     <packaging>jar</packaging>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.3-SNAPSHOT</version>
 
     <scm>
         <connection>scm:git:git@github.com:ptaucher/dsatools.git</connection>
@@ -96,6 +96,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.8.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mortennobel</groupId>
+            <artifactId>java-image-scaling</artifactId>
+            <version>0.8.6</version>
         </dependency>
     </dependencies>
 

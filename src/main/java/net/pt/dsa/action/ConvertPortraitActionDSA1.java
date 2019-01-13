@@ -7,10 +7,11 @@ import org.apache.commons.io.FileUtils;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.event.ActionEvent;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 /**
  * Created by ptaucher on 10.01.2019<br/>
@@ -51,14 +52,30 @@ public class ConvertPortraitActionDSA1 extends AbstractDsaToolsAction {
         if (choice == JOptionPane.OK_OPTION) {
           try {
             File portraitFile = new File(FileUtils.getTempDirectory(), "DUMMY.CHR");
-            try (InputStream in = DsaTools.class.getClassLoader().getResourceAsStream(tools.getSetting("source.chr.file"));
-                 OutputStream out = new FileOutputStream(portraitFile)) {
-              int i;
-              while((i = in.read()) > -1) {
-                out.write(i);
-              }
-            }
+
+            //Path path = Paths.get(getClass().getClassLoader().getResource(tools.getSetting("source.chr.file")).toURI());
+            //Files.copy(path, Paths.get(portraitFile.toURI()), StandardCopyOption.REPLACE_EXISTING);
+            //FileUtils.writeByteArrayToFile(portraitFile, fileBytes);
+
+            /*
+            Path path = portraitFile.toPath();
+            Files.copy(
+                    ClassLoader.getSystemResourceAsStream(tools.getSetting("source.chr.file")),
+                    path,
+                    StandardCopyOption.REPLACE_EXISTING);
+                    */
+            /*
+            FileUtils.copyURLToFile(
+                    ClassLoader.getSystemResource(tools.getSetting("source.chr.file")),
+                    new File(portraitFile.getParent(), "DUMMY2.CHR"));
+                    */
+
+            FileUtils.copyFile(
+                    new File("./src/main/resources/" + tools.getSetting("source.chr.file")),
+                    portraitFile);
+
             DsaUtil.convertPortraits(pngFiles, portraitFile);
+
           } catch (Exception ex) {
             ex.printStackTrace();
           }

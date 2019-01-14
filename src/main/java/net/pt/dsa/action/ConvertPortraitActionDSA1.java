@@ -53,26 +53,11 @@ public class ConvertPortraitActionDSA1 extends AbstractDsaToolsAction {
           try {
             File portraitFile = new File(FileUtils.getTempDirectory(), "DUMMY.CHR");
 
-            //Path path = Paths.get(getClass().getClassLoader().getResource(tools.getSetting("source.chr.file")).toURI());
-            //Files.copy(path, Paths.get(portraitFile.toURI()), StandardCopyOption.REPLACE_EXISTING);
-            //FileUtils.writeByteArrayToFile(portraitFile, fileBytes);
-
-            /*
             Path path = portraitFile.toPath();
             Files.copy(
                     ClassLoader.getSystemResourceAsStream(tools.getSetting("source.chr.file")),
                     path,
                     StandardCopyOption.REPLACE_EXISTING);
-                    */
-            /*
-            FileUtils.copyURLToFile(
-                    ClassLoader.getSystemResource(tools.getSetting("source.chr.file")),
-                    new File(portraitFile.getParent(), "DUMMY2.CHR"));
-                    */
-
-            FileUtils.copyFile(
-                    new File("./src/main/resources/" + tools.getSetting("source.chr.file")),
-                    portraitFile);
 
             DsaUtil.convertPortraits(pngFiles, portraitFile);
 

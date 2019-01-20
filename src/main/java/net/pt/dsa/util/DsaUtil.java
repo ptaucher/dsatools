@@ -142,7 +142,7 @@ public class DsaUtil {
    * @param dirName
    * @throws IOException
    */
-  private static void writeImage(File sourceImage, BufferedImage image, String dirName) throws IOException {
+  protected static void writeImage(File sourceImage, BufferedImage image, String dirName) throws IOException {
     File targetDir = new File(sourceImage.getParentFile().getAbsolutePath() + File.separator + dirName);
     targetDir.mkdirs();
 
@@ -259,5 +259,72 @@ public class DsaUtil {
     } catch (Exception ex) {
       ex.printStackTrace();
     }
+  }
+
+  public static BufferedImage readDsaImageFromChrFile(File chrFile) throws IOException {
+    BufferedImage image = null;
+
+    // Read CHR file
+    byte[] fileContent = FileUtils.readFileToByteArray(chrFile);
+    if (fileContent != null) {
+      // Start reading portrait data from offset 02DA until 06D9 (1024 [0x0400] bytes)
+      // Create image according to palette conversion
+      image = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+
+      for (int i = 0x02DA, x = 0, y = 0; i <= 0x06D9; i++) {
+        Dsa32BitColour colour = Dsa32BitColour.fromByteValue(fileContent[i]);
+          /*
+          System.out.println("i=" + i + " " +
+              String.format("0x%04X", i) + ", x=" +
+              String.format("%02d", x) + ", y=" +
+              String.format("%02d", y) + ", " + colour);
+          */
+        image.setRGB(x, y, colour.getRGB());
+
+        if (x == 31) {
+          // Line complete
+          x = 0;
+          y++;
+        } else {
+          x++;
+        }
+      }
+    }
+
+    return image;
+  }
+
+  public static BufferedImage readDsaImageFromHeads(File headsFile) throws IOException {
+    BufferedImage image = null;
+
+    // Read CHR file
+    byte[] fileContent = FileUtils.readFileToByteArray(headsFile);
+    if (fileContent != null) {
+      // Try reading last 1024 [0x0400] bytes
+      // TODO ???
+      image = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+
+      //for (int i = fileContent.length - 1024 - 1, x = 0, y = 0; y < 32; i++) {
+      for (int i = 0, x = 0, y = 0; y < 32; i++) {
+        Dsa32BitColour colour = Dsa32BitColour.fromByteValue(fileContent[i]);
+          /* */
+          System.out.println("i=" + i + " " +
+              String.format("0x%04X", i) + ", x=" +
+              String.format("%02d", x) + ", y=" +
+              String.format("%02d", y) + ", " + colour);
+          /* */
+        image.setRGB(x, y, colour.getRGB());
+
+        if (x == 31) {
+          // Line complete
+          x = 0;
+          y++;
+        } else {
+          x++;
+        }
+      }
+    }
+
+    return image;
   }
 }
